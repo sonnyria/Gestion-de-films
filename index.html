@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyMovieDB</title>
+    
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .animate-bounce-in { animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        @keyframes bounceIn {
+            0% { transform: translate(-50%, -100%); opacity: 0; }
+            100% { transform: translate(-50%, 0); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- ICONS (Inline SVG pour éviter les dépendances externes) ---
+        const Icons = {
+            Film: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/></svg>,
+            Settings: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>,
+            Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+            Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            Save: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/></svg>,
+            XCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>,
+            CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>,
+            Disc: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>,
+            ShoppingCart: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>,
+            Loader: () => <svg className="animate-spin" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        };
+
+        const { useState, useEffect } = React;
+
+        // --- COMPONENTS ---
+        const Card = ({ children, className = "" }) => (
+            <div className={`bg-slate-800 border border-slate-700 rounded-xl shadow-lg overflow-hidden ${className}`}>
+                {children}
+            </div>
+        );
+
+        const Button = ({ onClick, disabled, children, variant = 'primary', className = "" }) => {
+            const baseStyle = "px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed";
+            const variants = {
+                primary: "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-900/20 shadow-lg",
+                secondary: "bg-slate-700 hover:bg-slate-600 text-slate-200",
+                success: "bg-emerald-600 hover:bg-emerald-500 text-white",
+            };
+            return (
+                <button onClick={onClick} disabled={disabled} className={`${baseStyle} ${variants[variant]} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        const Input = ({ value, onChange, placeholder, className = "" }) => (
+            <input
+                type="text"
+                value={value}
+                onChange={onChange}
+                placeholder={placeholder}
+                className={`w-full bg-slate-900 border border-slate-700 text-slate-100 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-slate-500 ${className}`}
+            />
+        );
+
+        const Select = ({ value, onChange, options }) => (
+            <select
+                value={value}
+                onChange={onChange}
+                className="w-full bg-slate-900 border border-slate-700 text-slate-100 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none appearance-none cursor-pointer"
+            >
+                {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
+        );
+
+        // --- MAIN APP ---
+        function App() {
+            const SUPPORTS = ['LASERDISC', 'DVD', 'Blu-Ray', 'à acheter'];
+
+            const [scriptUrl, setScriptUrl] = useState('');
+            const [view, setView] = useState('search'); 
+            const [loading, setLoading] = useState(false);
+            const [notification, setNotification] = useState(null);
+
+            const [searchTerm, setSearchTerm] = useState('');
+            const [searchResults, setSearchResults] = useState([]);
+            const [hasSearched, setHasSearched] = useState(false);
+
+            const [newTitle, setNewTitle] = useState('');
+            const [newSupport, setNewSupport] = useState('Blu-Ray');
+
+            useEffect(() => {
+                const savedUrl = localStorage.getItem('movieApp_scriptUrl');
+                if (savedUrl) setScriptUrl(savedUrl);
+                else setView('config');
+            }, []);
+
+            const showNotification = (type, message) => {
+                setNotification({ type, message });
+                setTimeout(() => setNotification(null), 5000);
+            };
+
+            const callApi = async (action, data = {}) => {
+                if (!scriptUrl) {
+                    showNotification('error', "L'URL de l'API n'est pas configurée.");
+                    return null;
+                }
+
+                setLoading(true);
+                try {
+                    // Si demo
+                    if(scriptUrl === 'demo') return await mockApi(action, data);
+
+                    const url = new URL(scriptUrl);
+                    url.searchParams.append('action', action);
+                    Object.keys(data).forEach(key => url.searchParams.append(key, data[key]));
+
+                    const response = await fetch(url.toString());
+                    const result = await response.json();
+                    return result;
+                } catch (error) {
+                    console.error("Erreur API:", error);
+                    showNotification('error', "Erreur réseau. Vérifiez l'URL ou votre connexion.");
+                    return null;
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const mockApi = async (action, data) => {
+                await new Promise(r => setTimeout(r, 800));
+                if (action === 'search') {
+                    const mockFound = [];
+                    const query = data.query.toLowerCase();
+                    if ("titanic".includes(query)) mockFound.push({ title: "Titanic", support: "LASERDISC" });
+                    if ("avatar".includes(query)) mockFound.push({ title: "Avatar", support: "Blu-Ray" });
+                    if ("dune".includes(query)) mockFound.push({ title: "Dune", support: "à acheter" });
+                    return { status: 'success', data: mockFound };
+                }
+                if (action === 'add') return { status: 'success', message: 'Film ajouté (Démo)' };
+            };
+
+            const handleSaveConfig = () => {
+                localStorage.setItem('movieApp_scriptUrl', scriptUrl);
+                showNotification('success', 'Configuration sauvegardée !');
+                setView('search');
+            };
+
+            const handleSearch = async (e) => {
+                e.preventDefault();
+                if (!searchTerm.trim()) return;
+                setSearchResults([]);
+                setHasSearched(false);
+                
+                const response = await callApi('search', { query: searchTerm });
+                if (response && response.status === 'success') {
+                    setSearchResults(response.data);
+                    setHasSearched(true);
+                    if (response.data.length === 0) setNewTitle(searchTerm);
+                }
+            };
+
+            const handleAddMovie = async () => {
+                if (!newTitle.trim()) return;
+                const response = await callApi('add', { title: newTitle, support: newSupport });
+                if (response && response.status === 'success') {
+                    showNotification('success', `"${newTitle}" ajouté dans ${newSupport} !`);
+                    setNewTitle('');
+                    setHasSearched(false);
+                    setView('search');
+                } else {
+                    showNotification('error', response ? response.message : "Erreur lors de l'ajout.");
+                }
+            };
+
+            const getSupportIcon = (supportName) => {
+                if (supportName.toLowerCase().includes('acheter')) return <Icons.ShoppingCart />;
+                return <Icons.Disc />;
+            };
+
+            const getSupportColor = (supportName) => {
+                switch(supportName) {
+                    case 'Blu-Ray': return 'text-blue-400 bg-blue-900/30';
+                    case 'DVD': return 'text-amber-400 bg-amber-900/30';
+                    case 'LASERDISC': return 'text-purple-400 bg-purple-900/30';
+                    case 'à acheter': return 'text-emerald-400 bg-emerald-900/30';
+                    default: return 'text-slate-400 bg-slate-800';
+                }
+            };
+
+            return (
+                <div className="pb-20 max-w-2xl mx-auto">
+                    {/* Header */}
+                    <header className="bg-slate-950 border-b border-slate-800 sticky top-0 z-10 mb-6">
+                        <div className="px-4 h-16 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-blue-400">
+                                <Icons.Film />
+                                <h1 className="font-bold text-xl tracking-tight text-slate-100">MyMovieDB</h1>
+                            </div>
+                            <button onClick={() => setView('config')} className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-white">
+                                <Icons.Settings />
+                            </button>
+                        </div>
+                    </header>
+
+                    <main className="px-4 space-y-6">
+                        {notification && (
+                            <div className={`fixed top-20 left-1/2 -translate-x-1/2 px-4 py-3 rounded-lg shadow-xl flex items-center gap-3 animate-bounce-in z-50 ${
+                                notification.type === 'success' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'
+                            }`}>
+                                {notification.type === 'success' ? <Icons.CheckCircle /> : <Icons.XCircle />}
+                                <span className="font-medium">{notification.message}</span>
+                            </div>
+                        )}
+
+                        {view === 'config' && (
+                            <Card className="p-6 space-y-4">
+                                <h2 className="text-xl font-semibold flex items-center gap-2">
+                                    <Icons.Settings /> Configuration
+                                </h2>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-500 uppercase">URL du Script Google</label>
+                                    <Input value={scriptUrl} onChange={(e) => setScriptUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..." />
+                                </div>
+                                <div className="flex justify-end gap-3 pt-2">
+                                    <Button variant="secondary" onClick={() => setView('search')} disabled={!localStorage.getItem('movieApp_scriptUrl')}>Retour</Button>
+                                    <Button onClick={handleSaveConfig}><Icons.Save /> Sauvegarder</Button>
+                                </div>
+                            </Card>
+                        )}
+
+                        {view === 'search' && (
+                            <div className="space-y-6">
+                                <Card className="p-6">
+                                    <form onSubmit={handleSearch} className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder="Chercher un titre..." className="pl-10" />
+                                            <div className="w-5 h-5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 flex items-center"><Icons.Search /></div>
+                                        </div>
+                                        <Button type="submit" disabled={loading || !searchTerm}>
+                                            {loading ? <Icons.Loader /> : 'Go'}
+                                        </Button>
+                                    </form>
+                                </Card>
+
+                                {hasSearched && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-slate-400 text-sm font-medium uppercase tracking-wider">{searchResults.length} Résultat(s)</h3>
+                                            {searchResults.length === 0 && (
+                                                <Button variant="success" onClick={() => setView('add')} className="text-sm py-1"><Icons.Plus /> Ajouter</Button>
+                                            )}
+                                        </div>
+                                        {searchResults.length > 0 ? (
+                                            <div className="grid gap-3">
+                                                {searchResults.map((item, idx) => (
+                                                    <Card key={idx} className="p-4 flex items-center justify-between hover:bg-slate-800/80 transition-colors">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getSupportColor(item.support)}`}>
+                                                                {getSupportIcon(item.support)}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-semibold text-lg">{item.title}</p>
+                                                                <span className="text-xs text-slate-400 uppercase tracking-wide">Trouvé dans : <span className="text-slate-200 font-bold">{item.support}</span></span>
+                                                            </div>
+                                                        </div>
+                                                    </Card>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="text-center py-12 bg-slate-800/50 rounded-xl border border-dashed border-slate-700">
+                                                <p className="text-slate-400">Ce titre est introuvable.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {view === 'add' && (
+                            <Card className="p-6 space-y-6">
+                                <div className="flex items-center justify-between border-b border-slate-700 pb-4">
+                                    <h2 className="text-xl font-bold">Ajouter un film</h2>
+                                    <button onClick={() => setView('search')} className="text-slate-400 hover:text-white"><Icons.XCircle /></button>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-300">Titre</label>
+                                        <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Ex: Top Gun" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-slate-300">Format / Colonne</label>
+                                        <Select value={newSupport} onChange={(e) => setNewSupport(e.target.value)} options={SUPPORTS} />
+                                    </div>
+                                    <div className="pt-4 flex gap-3">
+                                        <Button variant="secondary" className="flex-1" onClick={() => setView('search')}>Annuler</Button>
+                                        <Button className="flex-1" onClick={handleAddMovie} disabled={loading || !newTitle}>{loading ? <Icons.Loader /> : 'Enregistrer'}</Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        )}
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
